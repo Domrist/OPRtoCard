@@ -1,177 +1,181 @@
 from fpdf import FPDF
+
 from contants import *
+from Upgrade import *
+from UpgradePage import *
+
+from fpdf import FPDF
 
 pdf = FPDF(orientation='L', unit='mm', format='A4')
 
-def writeText(x,y,text,sizee=10):
-    pdf.set_font(family = "Arial", size = sizee)
-    textLength = pdf.get_string_width(text)
-    textLength = textLength/2
-    pdf.set_xy(x,y)
-    pdf.write(0,text)
+def writeText(x,y,text, sizee = 10,  sstyle = ''):
+	if sstyle:
+		pdf.set_font(family = "Helvetica", style = sstyle, size = sizee)
+	else:
+		pdf.set_font(family = "Helvetica", size = sizee)
+	textLength = pdf.get_string_width(text)
+	textLength = textLength/2
+	pdf.set_xy(x,y)
+	pdf.write(0,text)
 
 
 
 def writeCenteredText(x,y,text,sizee=10):
-    if x < 0:
-        #abort()
-        print("LESS")
-    pdf.set_font(family = "Arial", size = sizee)
-    textLength = pdf.get_string_width(text)/2
-    x -= textLength
-    pdf.set_xy(x,y)
-    pdf.write(0,text)
+
+	#print(pdf.c_margin)
+
+	if x < 0:
+		print("LESS")
+	pdf.set_font(family = "Helvetica", size = sizee)
+	textLength = pdf.get_string_width(text)
+
+	x -= (textLength/2)
+
+	x -= (pdf.c_margin)	# EVERY TEXT HAVE MARGIN
+
+	pdf.set_xy(x,y)
+	pdf.write(0,text)
 
 
 
 def writeWeaponData(weaponObjects):
-    localHeight = 30
-    for weaponData in weaponObjects:
-        weaponString = ""
-        weaponSpecs = ""
-        weaponName = weaponData["weaponName"]
-        keyIterator = iter(weaponData)
-        for key,valu in weaponData.items():
-            if key == "weaponName":
-                continue
-            elif valu == "-":
-                continue
-            weaponSpecs += valu + ","
-        writeText(0, localHeight, weaponName)
-        localHeight += STEP_LINE_GLOBAL
-        writeText(0, localHeight, "|-" + weaponSpecs)
-        localHeight += STEP_LINE_GLOBAL
+	localHeight = 30
+	for weaponData in weaponObjects:
+		weaponString = ""
+		weaponSpecs = ""
+		weaponName = weaponData["weaponName"]
+		keyIterator = iter(weaponData)
+		print(weaponData.items())
+		for key,valu in weaponData.items():
+			if key == "weaponName":
+				continue
+			elif valu == "-":
+				continue
+			weaponSpecs += valu + ","
+		writeText(0, localHeight, weaponName)
+		localHeight += STEP_LINE_GLOBAL
+		writeText(0, localHeight, "|-" + weaponSpecs)
+		localHeight += STEP_LINE_GLOBAL
 
 
 
 def getUpgradeRowCount(upgradeObject):
-    res = 0
-    updgradePageHeader = upgradeObject["key"]
-    #print(updgradePageHeader)
-    # сперва отработает длинное разделение всего и вся
-    if AND_STRING in updgradePageHeader:
-        splittedUpgradeHeader = updgradePageHeader.split(AND_STRING)
+	res = 0
+	updgradePageHeader = upgradeObject["key"]
 
-        for splittedUpgradeHdr in splittedUpgradeHeader:
-            localUpradeLineObject = getSplittedUpgradesListPos(splittedUpgradeHdr)
-            for item in localUpradeLineObject:
-                res += 1    # for upgradeName
-                tripleObject = splitStringToTriples(item["upgradeSpecs"])
-                res += len(tripleObject)
+	if AND_STRING in updgradePageHeader:
+		splittedUpgradeHeader = updgradePageHeader.split(AND_STRING)
 
-        for upgradeLine in upgradeObject["value"]:
-            tmpUpgradeLine = [var for var in upgradeLine.split("\n") if var]
-            upgradeName = tmpUpgradeLine[0]
-            upgradeCost = tmpUpgradeLine[1]
-            upgradeLineCollection = getSplittedUpgradesListPos(upgradeName)
+		for splittedUpgradeHdr in splittedUpgradeHeader:
+			localUpradeLineObject = getSplittedUpgradesListPos(splittedUpgradeHdr)
+			for item in localUpradeLineObject:
+				upgradeName = item["upgradeName"]
+				res += 1	# for upgrade name
+				upgradeSpecs = splitStringToTriples(deleteFirstLastStaples(item["upgradeSpecs"]))
+				res += len(upgradeSpecs)
 
-            for upgrade in upgradeLineCollection:
-                tmpUpgradeName = upgrade["upgradeName"]
-                tmpUpgradeSpecs = upgrade["upgradeSpecs"]
-                tmpUpgradeSpecs = deleteFirstLastStaples(tmpUpgradeSpecs)
 
-                res += 1
-                if len(tmpUpgradeSpecs) != 0:
-                    res += 1
-    else:
-        pass
+		for upgradeLine in upgradeObject["value"]:
+			tmpUpgradeLine = [var for var in upgradeLine.split("\n") if var]
+			upgradeName = tmpUpgradeLine[0]
+			upgradeCost = tmpUpgradeLine[1]
 
-    #print("FINAL RES FOR HEADER => ", res)
-    return res
+			tmpUpgrade = Upgrade(upgradeName, upgradeCost)
+
+			res += tmpUpgrade.getTotalLineCapacity()
+
+	else:
+		pass
+
+	return res
 
 
 
 def getHeaderWriteData(a_incomingStr):
-    res = []
-    updgradePageHeader = a_incomingStr
-    if AND_STRING in updgradePageHeader:
-        splittedUpgradeHeader = updgradePageHeader.split(AND_STRING)
-        for splittedUpgradeHdr in splittedUpgradeHeader:
-            #print(splittedUpgradeHdr) # Replace Plague Hammer (A1, Blast(3), Poison)
-            localUpradeLineObject = getSplittedUpgradesListPos(splittedUpgradeHdr)
-            #print(localUpradeLineObject) # [{'upgradeName': 'Replace Plague Hammer', 'upgradeSpecs': '(A1, Blast(3), Poison)'}]
-            for item in localUpradeLineObject:
-                res.append(item['upgradeName'])
-                print(item['upgradeSpecs'])
-                for triplet in splitStringToTriples(item['upgradeSpecs']):
-                    res.append(triplet)
-        return res
+	res = []
+	updgradePageHeader = a_incomingStr
+
+	return res
+
 
 
 
 def writeUpdgrade(xPagePos, yPagePos, upgradeObject):
-    getUpgradeRowCount(upgradeObject)
 
-    updgradePageHeader = upgradeObject["key"]
-    for headerString in getHeaderWriteData(updgradePageHeader):
-        writeText(xPagePos,yPagePos,headerString, 10)
-        yPagePos += STEP_LINE_GLOBAL
+	global GLOBAL_X_POS
 
-    for upgradeLine in upgradeObject["value"]:
-        tmpUpgradeLine = [var for var in upgradeLine.split("\n") if var]
-        upgradeName = tmpUpgradeLine[0]
-        upgradeCost = tmpUpgradeLine[1]
-        upgradeLineCollection = getSplittedUpgradesListPos(upgradeName)
+	upgradeRowCount = getUpgradeRowCount(upgradeObject)
 
-        for upgrade in upgradeLineCollection:
-            tmpUpgradeName = upgrade["upgradeName"]
-            tmpUpgradeSpecs = upgrade["upgradeSpecs"]
-            tmpUpgradeSpecs = deleteFirstLastStaples(tmpUpgradeSpecs)
+	if upgradeRowCount > DEFAULT_ROW_COUNT_PER_PAGE:
+		print("SHOULD WRITE WITH MINIMUM 2 PAGES")
+	else:
+		print("CAN FIT ALL DATA INSIDE ONE PAGE")
 
-            writeText(xPagePos,yPagePos, tmpUpgradeName, 8)
-            yPagePos += STEP_LINE_GLOBAL
-            if len(tmpUpgradeSpecs) != 0:
-                writeText(xPagePos,yPagePos, tmpUpgradeSpecs, 8)
-                yPagePos += STEP_LINE_GLOBAL
-        pdf.line(xPagePos,yPagePos-2,xPagePos+40,yPagePos-2)
+	pageToPrint = UpgradePage(upgradeObject["key"], upgradeObject["value"])
+
+	cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
+
+	for headerString in pageToPrint.getHeaderData():
+		writeText(GLOBAL_X_POS, yPagePos, headerString, 8, 'B')
+		yPagePos += STEP_LINE_GLOBAL
+		cardRowBalance -= 1
+
+	pdf.line(GLOBAL_X_POS, yPagePos-2, xPagePos+40, yPagePos-2)
+
+	for upgrade in pageToPrint.getUpgrades():
+
+		if upgrade.getTotalLineCapacity() > cardRowBalance:
+			GLOBAL_X_POS += DEFAULT_CARD_WIDTH
+			cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
+			yPagePos = 4
+
+		for upgradeLine in upgrade.getUpgradesLine():
+			for upgradeLineString in upgradeLine.getData():
+				writeText(GLOBAL_X_POS, yPagePos, upgradeLineString, 8)
+				yPagePos += STEP_LINE_GLOBAL
+
+		cardRowBalance -= upgrade.getTotalLineCapacity()
+		pdf.line(GLOBAL_X_POS, yPagePos-2, GLOBAL_X_POS + 40, yPagePos-2)
+
+	GLOBAL_X_POS += DEFAULT_CARD_WIDTH
 
 
 
 def writeFillTest():
-    heightShift = 4
-    for i in range(12):
-        #writeText(40, heightShift, "Some nights expired",10)
-        writeText(40, heightShift, "Some nights expired",10)
-        heightShift += STEP_LINE_GLOBAL
+	heightShift = 4
+	for i in range(DEFAULT_ROW_COUNT_PER_PAGE):
+		writeText(40, heightShift, "Some nights expired",10)
+		heightShift += STEP_LINE_GLOBAL
+
+
 
 def initHerCardData(obj):
 
-    writeText(0,5,obj["unitName"])
-    writeCenteredText(20, 12,obj["quadef"],14)
+	#writeText(0,5,obj["unitName"])
+	writeCenteredText(20,4,obj["unitName"], 9)
+	writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE,obj["quadef"],14)
 
-    pdf.line(0,15,40,15)
+	pdf.line(0,15,40,15)
 
-    # генерация кейвордов
-    pdf.set_font("Arial", size=8)
-    keywordsLength = int(len(obj["keywords"].split(','))/3) # разбиваем кейворды на тройки
-    remainingPartOfKeywords = len(obj["keywords"].split(',')) % 3
-    splittedKeywords = obj["keywords"].split(',')
-    # проходимся по основным тройкам
-    counter = 0
-    shiftLen = pdf.get_string_width(",")
-    heightShift = 20
-    for index in range(keywordsLength):
-        finalString = ""
-        for j in range(3):  # собираем тройки по группам
-            finalString += splittedKeywords[counter] + ", "
-            counter += 1
-        writeCenteredText(20, heightShift, finalString)
-        heightShift += STEP_LINE_GLOBAL
-    # проходимся по оставшимся элементам (не может быть больше 3 элементов в строке)
-    remaingString = ""
-    for i in range(remainingPartOfKeywords):
-        remaingString += splittedKeywords[counter] + ", "
-        counter += 1
-    writeCenteredText(20, heightShift, splittedKeywords[3])
+	# генерация кейвордов
+	heightShift = 20
 
-    heightShift += STEP_LINE_GLOBAL
+	tripletsKeywords = splitStringToTriples2(obj["keywords"])
+	for keywordTriplet in tripletsKeywords:
+		print(keywordTriplet)
+		tripletStr = fromTripletToString(keywordTriplet)
+		writeCenteredText(20, heightShift, tripletStr, 8)
+		heightShift += STEP_LINE_GLOBAL
 
-    # блок вывода текущего оружия
-    writeWeaponData(obj["weapon"])
+	heightShift += STEP_LINE_GLOBAL
 
-    # блок вывода первой странички улучшений
-    #writeFillTest()
-    writeUpdgrade(40,4,obj["upgrades"][0])
-    #writeUpdgrade(40,54,obj["upgrades"][1])
-    #writeUpdgrade(40,104,obj["upgrades"][2])
-    #writeUpdgrade(40,154,obj["upgrades"][3])
+	# блок вывода текущего оружия
+	writeWeaponData(obj["weapon"])
+
+	# блок вывода страниц улучшений
+	#writeFillTest()
+
+	upgradeIndex = 0
+	for upgrade in obj["upgrades"]:
+		writeUpdgrade(0, 4, obj["upgrades"][upgradeIndex])
+		upgradeIndex += 1

@@ -1,0 +1,53 @@
+{
+	"unitName":"Champion of Plague [1]",
+	"unitPoints":"55pts",
+	"quadef":"Qua 4+ Def 4+",
+	"keywords":"Daemon, Hero, Putrid, Tough(3)",
+	"weapon":[
+		{
+			"weaponName":"Plague Hammer",
+			"weaponRange":"-",
+			"weaponAtk":"A1",
+			"weaponAP":"-",
+			"weaponSPE":"Blast(3), Poison"
+		},
+		{
+			"weaponName":"Sword",
+			"weaponRange":"-",
+			"weaponAtk":"A1",
+			"weaponAP":"-",
+			"weaponSPE":"Poison"
+		}
+	],
+	"upgrades":[
+		{
+			"key":"Replace Plague Hammer (A1, Blast(3), Poison) and Sword (A1, Poison)",
+			"value":[
+				"Default\n\nFree ",
+				"Plague Spear (A1, AP(2), Deadly(3), Poison), Sword (A1, Poison,A1, Poison,A1, Poison,A1, Poison,A1, Poison)\n\n10pts ",
+				"2x Plague Swords (A2, Poison, Rending)\n\n15pts ",
+				"Plague Sling (12\", A4, Poison), Plague Sword (A3, Poison)\n\n20pts "
+			]
+		},
+		{
+			"key":"Replace any Plague Swords (A2, Poison, Rending) [0]",
+			"value":[
+				"Plague Gauntlet (A2, AP(1), Poison)\n\nFree \n\n0"
+			]
+		},
+		{
+			"key":"Upgrade with any",
+			"value":[
+				"Symbol of Plague(1)\n\n10pts ",
+				"Blessing of Plague\n\n15pts ",
+				"Caster(2)\n\n20pts "]
+		},
+		{
+			"key":"Upgrade with one",
+			"value":[
+				"None\n\nFree ",
+				"Throne of Plague (Claw (A3, Poison), Tough(+3))\n\n55pts "
+			]
+		}
+	]
+}
