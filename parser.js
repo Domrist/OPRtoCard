@@ -1,13 +1,24 @@
 
+function download(filename, text) {
+  var element = document.createElement('a');
+  element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+  element.setAttribute('download', filename);
+  element.style.display = 'none';
+  document.body.appendChild(element);
+  element.click();
+  document.body.removeChild(element);
+}
+
 function parse()
 {
 
 	let dataToSave = {}
 
-	let mainColumn = document.getElementsByClassName("MuiGrid-root MuiGrid-item MuiGrid-grid-xs-true css-6lvoxv")[2];
+	let mainColumn = document.getElementsByClassName("MuiGrid-root MuiGrid-direction-xs-row")[3];
 
 	let unitName = mainColumn.children[0];
 	let unitPoints = mainColumn.children[0];
+
 
 	for(let i = 0; i < 4;i++)
 	{
@@ -18,12 +29,10 @@ function parse()
 	unitPoints = unitPoints.children[1];
 	unitPoints = unitPoints.children[0];
 
-	console.log(unitPoints)
-
 	dataToSave["unitName"] = unitName.innerText;
 	dataToSave["unitPoints"] = unitPoints.innerText;
 
-
+	
 	let unitData = mainColumn.querySelector("#unitSelection");
 	unitData = unitData.children[0];
 
@@ -73,7 +82,6 @@ function parse()
 
 	let GLOBAL_UPGRADES = [];
 
-	console.log(additionalData.childElementCount);
 
 	let totalIterationCount = (additionalData.childElementCount - 1) / 2;
 
@@ -105,4 +113,7 @@ function parse()
 
 	dataToSave["upgrades"] = GLOBAL_UPGRADES
 
+	console.log(dataToSave)
+
+	download("DATA.json", JSON.stringify(dataToSave))
 }
