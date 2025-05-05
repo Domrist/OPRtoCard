@@ -13,8 +13,7 @@ def writeText(x,y,text, sizee = 10,  sstyle = ''):
 		pdf.set_font(family = "Helvetica", style = sstyle, size = sizee)
 	else:
 		pdf.set_font(family = "Helvetica", size = sizee)
-	textLength = pdf.get_string_width(text)
-	textLength = textLength/2
+
 	pdf.set_xy(x,y)
 	pdf.write(0,text)
 
@@ -45,7 +44,7 @@ def writeWeaponData(weaponObjects):
 		weaponSpecs = ""
 		weaponName = weaponData["weaponName"]
 		keyIterator = iter(weaponData)
-		print(weaponData.items())
+
 		for key,valu in weaponData.items():
 			if key == "weaponName":
 				continue
@@ -99,7 +98,6 @@ def getHeaderWriteData(a_incomingStr):
 
 
 
-
 def writeUpdgrade(xPagePos, yPagePos, upgradeObject):
 
 	global GLOBAL_X_POS
@@ -111,7 +109,7 @@ def writeUpdgrade(xPagePos, yPagePos, upgradeObject):
 	else:
 		print("CAN FIT ALL DATA INSIDE ONE PAGE")
 
-	pageToPrint = UpgradePage(upgradeObject["key"], upgradeObject["value"])
+	pageToPrint = UpgradePage(pdf, upgradeObject["key"], upgradeObject["value"])
 
 	cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
 
@@ -161,8 +159,8 @@ def initHerCardData(obj):
 	heightShift = 20
 
 	tripletsKeywords = splitStringToTriples2(obj["keywords"])
+
 	for keywordTriplet in tripletsKeywords:
-		print(keywordTriplet)
 		tripletStr = fromTripletToString(keywordTriplet)
 		writeCenteredText(20, heightShift, tripletStr, 8)
 		heightShift += STEP_LINE_GLOBAL
@@ -176,6 +174,6 @@ def initHerCardData(obj):
 	#writeFillTest()
 
 	upgradeIndex = 0
-	for upgrade in obj["upgrades"]:
-		writeUpdgrade(0, 4, obj["upgrades"][upgradeIndex])
+	for upgrade in range(len(obj["upgrades"])-1):
+		writeUpdgrade(0, 4, obj["upgrades"][upgrade])
 		upgradeIndex += 1
