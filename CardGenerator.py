@@ -149,6 +149,10 @@ def writeFillTest():
 
 def initHerCardData(obj):
 
+	global GLOBAL_X_POS
+
+	GLOBAL_X_POS = 40
+
 	#writeText(0,5,obj["unitName"])
 	writeCenteredText(20,4,obj["unitName"], 9)
 	writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE,obj["quadef"],14)
