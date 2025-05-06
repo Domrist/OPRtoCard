@@ -87,15 +87,22 @@ localUnit = units[0]
 
 #localUnit[""]
 print(localUnit["name"])
-print(localUnit["rules"])
+
+rulesString = ""
+for rule in localUnit["rules"]:
+	rulesString += rule["name"]+","
+rulesString = rulesString[:-1]
+print(rulesString)
+
 print(localUnit["defense"])
 print(localUnit["quality"])
-print(localUnit["weapons"])
+#print(localUnit["weapons"])
 for unitUpgrade in localUnit["upgrades"]:
-	print(unitUpgrade)
+	#print(unitUpgrade)
 	for upgradePack in upgradePackage:
 		if upgradePack["uid"] == unitUpgrade:
-			print(upgradePack)
+			print(upgradePack["sections"])
+			#print(upgradePack["sections"]["options"][""])
 
 
 
