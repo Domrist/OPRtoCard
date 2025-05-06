@@ -9,6 +9,44 @@ function download(filename, text) {
   document.body.removeChild(element);
 }
 
+function getReadyUnitCollection()
+{
+	let mainColumn = document.getElementsByClassName("MuiGrid-root MuiGrid-direction-xs-row")[2]
+	mainColumn = mainColumn.children[1];
+	mainColumn = mainColumn.children[0];
+
+	for (let i = 0; i < mainColumn.childElementCount; i++)
+	{
+		let elementChildren = mainColumn.children[i]
+		elementChildren.click()
+		parse("Element"+i)
+	}
+}
+
+
+
+function getAllElementsAsSingleFile(a_fileName)
+{
+	let mainColumn = document.getElementsByClassName("MuiGrid-root MuiGrid-direction-xs-row")[2]
+	mainColumn = mainColumn.children[1];
+	mainColumn = mainColumn.children[0];
+
+	finalCollection = []
+
+	for (let i = 0; i < mainColumn.childElementCount; i++)
+	{
+		let elementChildren = mainColumn.children[i]
+		elementChildren = elementChildren.children[0]
+		elementChildren.click()
+		let elementToAdd = parse()
+		finalCollection.push(elementToAdd)
+	}
+
+	download(a_fileName, JSON.stringify(finalCollection))
+}
+
+
+
 function parse()
 {
 
@@ -115,5 +153,6 @@ function parse()
 
 	console.log(dataToSave)
 
-	download("DATA.json", JSON.stringify(dataToSave))
+	return dataToSave
+	//download(a_finalParseFileName, JSON.stringify(dataToSave))
 }
