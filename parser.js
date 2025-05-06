@@ -36,7 +36,6 @@ function getAllElementsAsSingleFile(a_fileName)
 	for (let i = 0; i < mainColumn.childElementCount; i++)
 	{
 		let elementChildren = mainColumn.children[i]
-		elementChildren = elementChildren.children[0]
 		elementChildren.click()
 		let elementToAdd = parse()
 		finalCollection.push(elementToAdd)
