@@ -4,6 +4,8 @@ from contants import *
 from Upgrade import *
 from UpgradePage import *
 
+from UnitData import *
+
 from fpdf import FPDF
 
 pdf = FPDF(orientation='L', unit='mm', format='A4')
@@ -58,6 +60,35 @@ def writeWeaponData(weaponObjects):
 
 
 
+def getUnitWeaponData(a_weaponObjects):
+	weaponDataArr = []
+	for weaponData in a_weaponObjects:
+
+		tmpWeaponData = {}
+		weaponSpecs = ""
+		weaponName = ""
+
+		for key,valu in weaponData.items():
+			if key == "weaponName":
+				weaponName = weaponData["weaponName"]
+				continue
+			elif key == "weaponAP" and valu != "-":
+				valu = "AP(" + valu + ")"
+			elif valu == "-":
+				continue
+			weaponSpecs += valu + ","
+
+		weaponSpecs = weaponSpecs[:-1]
+
+		tmpWeaponData["WeaponName"] = weaponName
+		tmpWeaponData["WeaponSpecs"] = weaponSpecs
+
+		weaponDataArr.append(tmpWeaponData)
+
+	return weaponDataArr
+
+
+
 def getUpgradeRowCount(upgradeObject):
 	res = 0
 	updgradePageHeader = upgradeObject["key"]
@@ -90,26 +121,14 @@ def getUpgradeRowCount(upgradeObject):
 
 
 
-def getHeaderWriteData(a_incomingStr):
-	res = []
-	updgradePageHeader = a_incomingStr
-
-	return res
-
-
-
-def writeUpdgrade(xPagePos, yPagePos, upgradeObject):
+def writeUpdgrade(a_baseY, yPagePos, a_upgradePage):
 
 	global GLOBAL_X_POS
+	BASE_Y = a_baseY
 
-	upgradeRowCount = getUpgradeRowCount(upgradeObject)
+	upgradeRowCount = a_upgradePage.getRowCount()
 
-	if upgradeRowCount > DEFAULT_ROW_COUNT_PER_PAGE:
-		print("SHOULD WRITE WITH MINIMUM 2 PAGES")
-	else:
-		print("CAN FIT ALL DATA INSIDE ONE PAGE")
-
-	pageToPrint = UpgradePage(pdf, upgradeObject["key"], upgradeObject["value"])
+	pageToPrint = a_upgradePage
 
 	cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
 
@@ -118,14 +137,14 @@ def writeUpdgrade(xPagePos, yPagePos, upgradeObject):
 		yPagePos += STEP_LINE_GLOBAL
 		cardRowBalance -= 1
 
-	pdf.line(GLOBAL_X_POS, yPagePos-2, xPagePos+40, yPagePos-2)
+	pdf.line(GLOBAL_X_POS, yPagePos-2, GLOBAL_X_POS+40, yPagePos-2)
 
 	for upgrade in pageToPrint.getUpgrades():
 
 		if upgrade.getTotalLineCapacity() > cardRowBalance:
 			GLOBAL_X_POS += DEFAULT_CARD_WIDTH
 			cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
-			yPagePos = 4
+			yPagePos = 4 + BASE_Y
 
 		for upgradeLine in upgrade.getUpgradesLine():
 			for upgradeLineString in upgradeLine.getData():
@@ -139,6 +158,12 @@ def writeUpdgrade(xPagePos, yPagePos, upgradeObject):
 
 
 
+def getUpgradePages(a_upgradeObject):
+	tmpUpgrade = UpgradePage(a_upgradeObject["key"], a_upgradeObject["value"])
+	return tmpUpgrade
+
+
+
 def writeFillTest():
 	heightShift = 4
 	for i in range(DEFAULT_ROW_COUNT_PER_PAGE):
@@ -149,35 +174,61 @@ def writeFillTest():
 
 def initHerCardData(obj):
 
+	tmpUnitName = obj["unitName"]
+	tmpUnitQuaDef = obj["quadef"]
+
+
+	keyWordsArr = []
+	tripletsKeywords = splitStringToTriples2(obj["keywords"])
+	for keywordTriplet in tripletsKeywords:
+		tripletStr = fromTripletToString(keywordTriplet)
+		keyWordsArr.append(tripletStr)
+
+	# блок вывода текущего оружия
+	tmpWeaponData = getUnitWeaponData(obj["weapon"])
+
+	tmpUnitData = UnitData(tmpUnitName, tmpUnitQuaDef, keyWordsArr, tmpWeaponData)
+
+	upgradeIndex = 0
+	#for upgrade in range(len(obj["upgrades"])-1):
+	for upgrade in obj["upgrades"]:
+		tmpUpgrade = getUpgradePages(upgrade)
+		tmpUnitData.addUpgradePage(tmpUpgrade)
+
+	#print("TOTAL PAGE COUNT -> ", tmpUnitData.getUnitDataPageCount())
+
+	return tmpUnitData
+
+
+
+def writeHeroCardData(a_unitData, a_rowIndex):
+
+	baseRowY = a_rowIndex * DEFAULT_CARD_HEIGHT
+
 	global GLOBAL_X_POS
 
 	GLOBAL_X_POS = 40
 
-	#writeText(0,5,obj["unitName"])
-	writeCenteredText(20,4,obj["unitName"], 9)
-	writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE,obj["quadef"],14)
+	headerYPos = ()
 
-	pdf.line(0,15,40,15)
+	writeCenteredText(20, 4 + baseRowY, a_unitData.getUnitName(), 9)
+	writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData.getQuaDef(), 14)
+
+	pdf.line(0, 15 + baseRowY, 40, 15 + baseRowY)
 
 	# генерация кейвордов
-	heightShift = 20
+	heightShift = 20 + baseRowY
 
-	tripletsKeywords = splitStringToTriples2(obj["keywords"])
-
-	for keywordTriplet in tripletsKeywords:
-		tripletStr = fromTripletToString(keywordTriplet)
-		writeCenteredText(20, heightShift, tripletStr, 8)
+	for keywordTriplet in a_unitData.getKeywords():
+		writeCenteredText(20, heightShift, keywordTriplet, 8)
 		heightShift += STEP_LINE_GLOBAL
 
-	heightShift += STEP_LINE_GLOBAL
-
-	# блок вывода текущего оружия
-	writeWeaponData(obj["weapon"])
+	for weaponData in a_unitData.getWeaponData():
+		writeText(0, heightShift, weaponData["WeaponName"], 8)
+		heightShift += STEP_LINE_GLOBAL
+		writeText(0, heightShift, weaponData["WeaponSpecs"], 8)
+		heightShift += STEP_LINE_GLOBAL
 
 	# блок вывода страниц улучшений
-	#writeFillTest()
-
-	upgradeIndex = 0
-	for upgrade in range(len(obj["upgrades"])-1):
-		writeUpdgrade(0, 4, obj["upgrades"][upgrade])
-		upgradeIndex += 1
+	for upgrade in a_unitData.getUpgradePages():
+		writeUpdgrade(baseRowY, 4 + baseRowY, upgrade)

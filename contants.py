@@ -6,6 +6,8 @@ STEP_LINE_GLOBAL = STEP_8_MULT_05
 AND_STRING = " and "
 DEFAULT_ROW_COUNT_PER_PAGE = 12 # При стандартном размере шрифта в размере 8
 DEFAULT_CARD_WIDTH = 40 # in mm
+DEFAULT_CARD_HEIGHT = 50 # in mm
+
 
 GLOBAL_X_POS = 40	# MUTABLE
 

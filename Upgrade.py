@@ -8,11 +8,14 @@ class Upgrade:
 	totalLineCapacity : int
 
 	def __init__(self, a_parsedString, a_cost):
+
 		self.upgradesLine = []
 		self.cost = a_cost
 		self.totalLineCapacity = 0
 
 		splittedUpgrades = getSplittedUpgradesListPos(a_parsedString)
+
+		#print("Upgrade -> parsed string -> ", splittedUpgrades)
 
 		for upgradeData in splittedUpgrades:
 			self.upgradesLine.append(UpgradeLine(upgradeData["upgradeName"], upgradeData["upgradeSpecs"]))
@@ -33,7 +36,6 @@ class Upgrade:
 
 
 	def print(self):
-		return
 		print("UPGRADE")
 		for upLine in self.upgradesLine:
 			upLine.print()

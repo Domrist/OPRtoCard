@@ -15,10 +15,16 @@ class UpgradePage:
 	upgradeHeaderLines : []
 	upgrades : []
 
-	def __init__(self, a_fpdf, a_headerData, a_upgradesData):
+	rowCapacity : int
+
+	pagesCapacity : int
+
+	def __init__(self, a_headerData, a_upgradesData):
 
 		self.upgradeHeaderLines = []
 		self.upgrades = []
+		self.rowCapacity = 0
+		self.pagesCapacity = 0
 
 		if AND_STRING in a_headerData:
 
@@ -35,18 +41,29 @@ class UpgradePage:
 						self.upgradeHeaderLines.append(tripletStr)
 		else:
 			for localUpradeHeaderObject in getSplittedUpgradesListPos(a_headerData):
-
-				correctHeaderWidth(a_fpdf, localUpradeHeaderObject["upgradeName"])
 				self.upgradeHeaderLines.append(localUpradeHeaderObject["upgradeName"])
 				self.upgradeHeaderLines.append(localUpradeHeaderObject["upgradeSpecs"])	# should breack to triples!!!
 
+		self.rowCapacity += len(self.upgradeHeaderLines)
 
 		for upgradeLine in a_upgradesData:
+
 			tmpUpgradeLine = [var for var in upgradeLine.split("\n") if var]
+
 			upgradeName = tmpUpgradeLine[0]
 			upgradeCost = tmpUpgradeLine[1]
 
-			self.upgrades.append(Upgrade(upgradeName, upgradeCost))
+			tmpUpgrade = Upgrade(upgradeName, upgradeCost)
+
+			self.upgrades.append(tmpUpgrade)
+			self.rowCapacity += tmpUpgrade.getTotalLineCapacity()
+
+		if self.rowCapacity <= 12:
+			self.pagesCapacity = 1
+		else:
+			self.pagesCapacity = int(self.rowCapacity / DEFAULT_ROW_COUNT_PER_PAGE)
+			if int(self.rowCapacity % DEFAULT_ROW_COUNT_PER_PAGE) != 0:
+				self.pagesCapacity += 1
 
 
 
@@ -64,3 +81,13 @@ class UpgradePage:
 
 	def getUpgrades(self):
 		return self.upgrades
+
+
+
+	def getPagesCapacity(self):
+		return self.pagesCapacity
+
+
+
+	def getRowCount(self):
+		return self.rowCapacity
