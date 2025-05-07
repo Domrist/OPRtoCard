@@ -5,14 +5,8 @@ import requests
 
 
 pdf = FPDF(orientation='L', unit='mm', format='A4')
-
-cardGenerator = CardGenerator(pdf)
-
 pdf.add_page(orientation = "L", format = "a4")
-page_height_page = 0
-yRowPageIndex = 0
-
-
+cardGenerator = CardGenerator(pdf)
 
 #'https://army-forge.onepagerules.com/api/army-books/FF4UemWHh60T1VRq?gameSystem=5'
 x = requests.get('https://army-forge.onepagerules.com/api/army-books/cF1dpwd4bhYsNhsf?gameSystem=5')
@@ -20,32 +14,41 @@ x = requests.get('https://army-forge.onepagerules.com/api/army-books/cF1dpwd4bhY
 obj = json.loads(x.content)
 units = obj["units"]
 
-#for key,val in obj.items():
-#	print(key)
+upgradePackage = obj["upgradePackages"] ### CONST
 
-upgradePackage = obj["upgradePackages"]
+counterRow = 0
 
+for unit in obj["units"]:
 
-for i in range(7):
-	pdf.rect(40 * i, 0 * DEFAULT_CARD_HEIGHT, DEFAULT_CARD_WIDTH, DEFAULT_CARD_HEIGHT)
+	position = Vector2(40, 4 + DEFAULT_CARD_HEIGHT * cardGenerator.yRowScalerPerPage)
 
+	### Write first page
+	firstPageData = getFirstPageData(unit) # DONE
+	cardGenerator.writeFirstHeroCardData(firstPageData) # DONE
+	### Write upgrades pages
 
-### Write first page
-localUnit = units[0]
-firstPageData = getFirstPageData(localUnit) # DONE
-cardGenerator.writeFirstHeroCardData(firstPageData, 0) # DONE
+	unitUpgrades = getUnitUpgrades(unit, upgradePackage)
 
-### Write another pages with getUnitUpgrades
-unitUpgrades = getUnitUpgrades(localUnit, upgradePackage)
+	for unitUpgrade in unitUpgrades:
+		cardGenerator.writeUpgradeHeroData(unitUpgrade, position)
 
-position = Vector2(40, 4)
+	for cell in range(int(position.x / DEFAULT_CARD_WIDTH)):
+		pdf.rect(40 * cell, DEFAULT_CARD_HEIGHT * cardGenerator.yRowScalerPerPage, DEFAULT_CARD_WIDTH, DEFAULT_CARD_HEIGHT)
 
-#cardGenerator.fillTest()
+	cardGenerator.increaseRowScaler()
 
-#'''
-for unitUpgrade in unitUpgrades:
-	cardGenerator.writeUpgradeHeroData(unitUpgrade, position)
-#'''
+	counterRow += 1
+
+	if counterRow >= 3:
+		counterRow = 0
+		pdf.add_page(orientation = "L", format = "a4")
+		cardGenerator.resetRowScaler()
 
 
 pdf.output("simple_demo.pdf")
+
+
+''' OTHER DATA
+#for key,val in obj.items():
+#	print(key)
+'''

@@ -8,9 +8,13 @@ from fpdf import FPDF
 class CardGenerator:
 
 	pdf : FPDF
+	yRowScalerPerPage : int
 
 	def __init__(self, a_fpdf):
 		self.pdf = a_fpdf
+		self.yRowScalerPerPage = 0
+
+
 
 	def writeText(self, x, y, text, sizee = 10,  sstyle = ''):
 		if sstyle:
@@ -20,6 +24,7 @@ class CardGenerator:
 
 		self.pdf.set_xy(x,y)
 		self.pdf.write(0,text)
+
 
 
 	def writeCenteredText(self, x, y, text, sizee=10):
@@ -36,16 +41,18 @@ class CardGenerator:
 		self.pdf.write(0,text)
 
 
+
 	def fillTest(self):
 		sss = "0123456789"
 		self.writeText(40, 4, sss, 10)
 		print(len(sss))
 
 
-	### API DATA WRITER
-	def writeFirstHeroCardData(self, a_unitData, a_rowIndex):
 
-		baseRowY = a_rowIndex * DEFAULT_CARD_HEIGHT
+	### API DATA WRITER
+	def writeFirstHeroCardData(self, a_unitData):
+
+		baseRowY = self.yRowScalerPerPage * DEFAULT_CARD_HEIGHT
 
 		global GLOBAL_X_POS
 
@@ -71,23 +78,24 @@ class CardGenerator:
 				heightShift += STEP_LINE_GLOBAL
 
 
+
 	def writeUpgradeHeroData(self, a_upgrade, a_position):
 
 		cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
 
 		upgrade = a_upgrade
 
+		#a_position.y = 4 + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
 
 		def checkEndPage():
 			nonlocal cardRowBalance
 			if cardRowBalance <= 0:
 				cardRowBalance = 12
-				a_position.y = 4
+				a_position.y = 4 + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
 				a_position.x += DEFAULT_CARD_WIDTH
 
 
 		def makeRowStep():
-			nonlocal cardRowBalance
 			nonlocal cardRowBalance
 
 			a_position.y += STEP_LINE_GLOBAL
@@ -100,8 +108,9 @@ class CardGenerator:
 
 
 		def goToNextPage():
+			nonlocal cardRowBalance
+			a_position.y = 4 + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
 			a_position.x += DEFAULT_CARD_WIDTH
-			a_position.y = 4
 
 
 		# print header data
@@ -126,7 +135,6 @@ class CardGenerator:
 				#print(stringToWrite, " -> ", len(stringToWrite))
 				if len(stringToWrite) > MAX_STRING_LENGTH:
 					for st in [gain["gainName"], ("(" + gain["gainSpecRule"][0] + ")")]:
-						print(st)
 						self.writeText(a_position.x, a_position.y, st, 8)
 						makeStep()
 				else:
@@ -144,7 +152,15 @@ class CardGenerator:
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 					makeStep()
 			self.pdf.line(a_position.x + 2, a_position.y - 2, a_position.x + 38, a_position.y - 2)
+		goToNextPage()
 		# end write gains - and also end write of upgrade
 
-		goToNextPage()
 
+
+	def increaseRowScaler(self):
+		self.yRowScalerPerPage += 1
+
+
+
+	def resetRowScaler(self):
+		self.yRowScalerPerPage = 0
