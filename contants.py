@@ -115,4 +115,28 @@ def fromTripletToString(a_triplet):
 
 	return str
 
+### NEXT DATA FOR WORKING WITH API
+
+def fromCollectionToStringifyTriplets(a_collection):
+
+	counter = 0
+	res = []
+
+	tmpString = ""
+	steps = 0
+
+	for element in a_collection:
+		tmpString += element + ","
+
+		counter += 1
+		steps += 1
+
+		if counter == 3 or steps == len(a_collection):
+			counter = 0
+			tmpString = tmpString[:-1]
+			res.append(tmpString)
+			tmpString = ""
+
+	return res
+
 
