@@ -129,10 +129,12 @@ class CardGenerator:
 
 		# write gains
 		for gain in upgrade["gains"]:
-			if len(gain["gainSpecRule"]) < 2:	# should print at same line as upgrade name
 
+			specRulesLen = len(gain["gainSpecRule"])
+
+			if specRulesLen < 2 and specRulesLen > 0:	# should print at same line as upgrade name
+				print(gain["gainSpecRule"])
 				stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
-				#print(stringToWrite, " -> ", len(stringToWrite))
 				if len(stringToWrite) > MAX_STRING_LENGTH:
 					for st in [gain["gainName"], ("(" + gain["gainSpecRule"][0] + ")")]:
 						self.writeText(a_position.x, a_position.y, st, 8)
@@ -140,7 +142,7 @@ class CardGenerator:
 				else:
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 					makeStep()
-			else:
+			elif specRulesLen >= 2:
 				stringToWrite = gain["gainName"]
 				self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 				makeStep()
@@ -151,7 +153,13 @@ class CardGenerator:
 					stringToWrite = triple
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 					makeStep()
-			self.pdf.line(a_position.x + 2, a_position.y - 2, a_position.x + 38, a_position.y - 2)
+			elif specRulesLen == 0:
+				stringToWrite = gain["gainName"]
+				self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+				makeStep()
+
+
+		self.pdf.line(a_position.x + 2, a_position.y - 2, a_position.x + 38, a_position.y - 2)
 		goToNextPage()
 		# end write gains - and also end write of upgrade
 

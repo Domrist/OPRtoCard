@@ -9,12 +9,14 @@ pdf.add_page(orientation = "L", format = "a4")
 cardGenerator = CardGenerator(pdf)
 
 #'https://army-forge.onepagerules.com/api/army-books/FF4UemWHh60T1VRq?gameSystem=5'
-x = requests.get('https://army-forge.onepagerules.com/api/army-books/cF1dpwd4bhYsNhsf?gameSystem=5')
+x = requests.get('https://army-forge.onepagerules.com/api/army-books/vJuokTQpJWj3_MrJ?gameSystem=5')
 
 obj = json.loads(x.content)
 units = obj["units"]
 
+
 upgradePackage = obj["upgradePackages"] ### CONST
+print(upgradePackage)
 
 counterRow = 0
 

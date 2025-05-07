@@ -6,11 +6,13 @@ def getFirstPageWeaponData(a_weaponData):
 	weaponName = a_weaponData["name"]
 	tmpArr = []
 
-	if a_weaponData["range"] != 0:
-		tmpArr.append(("{0}\"").format(a_weaponData["range"]))
+	if "range" in a_weaponData:
+		if a_weaponData["range"] != 0:
+			tmpArr.append(("{0}\"").format(a_weaponData["range"]))
 
-	if a_weaponData["attacks"] != 0:
-		tmpArr.append(("A{0}").format(a_weaponData["attacks"]))
+	if "attacks" in a_weaponData:
+		if a_weaponData["attacks"] != 0:
+			tmpArr.append(("A{0}").format(a_weaponData["attacks"]))
 
 	for specialRule in a_weaponData["specialRules"]:
 		tmpArr.append(specialRule["label"])
@@ -88,6 +90,8 @@ def getUnitUpgrades(a_unit, a_totalUpgrades):
 		for upgradePack in a_totalUpgrades:
 			if upgradePack["uid"] != unitUpgrade:
 				continue
+
+			unitId = a_unit["id"]
 
 			upgradeSections = upgradePack["sections"]
 			for upgradeSection in upgradeSections:
