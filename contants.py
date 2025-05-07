@@ -8,8 +8,20 @@ DEFAULT_ROW_COUNT_PER_PAGE = 12 # При стандартном размере �
 DEFAULT_CARD_WIDTH = 40 # in mm
 DEFAULT_CARD_HEIGHT = 50 # in mm
 
+MAX_STRING_LENGTH = 23 # при шрифте в 10
+
 
 GLOBAL_X_POS = 40	# MUTABLE
+
+
+class Vector2:
+	x : int
+	y : int
+
+	def __init__(self, a_x, a_y):
+		self.x = a_x
+		self.y = a_y
+
 
 def getSplittedUpgradesListPos(st):
 	st += ","

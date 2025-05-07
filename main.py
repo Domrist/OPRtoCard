@@ -1,16 +1,19 @@
 import json
-import os
 from CardGenerator import *
 from APIJSONParser import *
+import requests
 
-directory = os.getcwd() + "/JSONCollectoin/"
+
+pdf = FPDF(orientation='L', unit='mm', format='A4')
+
+cardGenerator = CardGenerator(pdf)
 
 pdf.add_page(orientation = "L", format = "a4")
 page_height_page = 0
 yRowPageIndex = 0
 
 
-import requests
+
 #'https://army-forge.onepagerules.com/api/army-books/FF4UemWHh60T1VRq?gameSystem=5'
 x = requests.get('https://army-forge.onepagerules.com/api/army-books/cF1dpwd4bhYsNhsf?gameSystem=5')
 
@@ -29,12 +32,20 @@ for i in range(7):
 
 ### Write first page
 localUnit = units[0]
-#firstPageData = getFirstPageData(localUnit) # DONE
-#writeFirstHeroCardData(firstPageData, 0) # DONE
+firstPageData = getFirstPageData(localUnit) # DONE
+cardGenerator.writeFirstHeroCardData(firstPageData, 0) # DONE
 
+### Write another pages with getUnitUpgrades
 unitUpgrades = getUnitUpgrades(localUnit, upgradePackage)
-#for unitUpgrade in unitUpgrades:
-print(unitUpgrades[0])
-writeUpgradeHeroData(unitUpgrades[0], 4)
+
+position = Vector2(40, 4)
+
+#cardGenerator.fillTest()
+
+#'''
+for unitUpgrade in unitUpgrades:
+	cardGenerator.writeUpgradeHeroData(unitUpgrade, position)
+#'''
+
 
 pdf.output("simple_demo.pdf")

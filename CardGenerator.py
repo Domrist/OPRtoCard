@@ -1,259 +1,150 @@
 from fpdf import FPDF
 
 from contants import *
-from Upgrade import *
-from UpgradePage import *
-
-from UnitData import *
 
 from fpdf import FPDF
 
-pdf = FPDF(orientation='L', unit='mm', format='A4')
 
-def writeText(x,y,text, sizee = 10,  sstyle = ''):
-	if sstyle:
-		pdf.set_font(family = "Helvetica", style = sstyle, size = sizee)
-	else:
-		pdf.set_font(family = "Helvetica", size = sizee)
+class CardGenerator:
 
-	pdf.set_xy(x,y)
-	pdf.write(0,text)
+	pdf : FPDF
 
+	def __init__(self, a_fpdf):
+		self.pdf = a_fpdf
 
+	def writeText(self, x, y, text, sizee = 10,  sstyle = ''):
+		if sstyle:
+			self.pdf.set_font(family = "Helvetica", style = sstyle, size = sizee)
+		else:
+			self.pdf.set_font(family = "Helvetica", size = sizee)
 
-def writeCenteredText(x,y,text,sizee=10):
+		self.pdf.set_xy(x,y)
+		self.pdf.write(0,text)
 
-	if x < 0:
-		print("LESS")
-	pdf.set_font(family = "Helvetica", size = sizee)
-	textLength = pdf.get_string_width(text)
 
-	x -= (textLength/2)
+	def writeCenteredText(self, x, y, text, sizee=10):
+		if x < 0:
+			print("LESS")
+		self.pdf.set_font(family = "Helvetica", size = sizee)
+		textLength = self.pdf.get_string_width(text)
 
-	x -= (pdf.c_margin)	# EVERY TEXT HAVE MARGIN
+		x -= (textLength/2)
 
-	pdf.set_xy(x,y)
-	pdf.write(0,text)
+		x -= (self.pdf.c_margin)	# EVERY TEXT HAVE MARGIN
 
+		self.pdf.set_xy(x,y)
+		self.pdf.write(0,text)
 
 
-def writeUpdgrade(a_baseY, yPagePos, a_upgradePage):
+	def fillTest(self):
+		sss = "0123456789"
+		self.writeText(40, 4, sss, 10)
+		print(len(sss))
 
-	global GLOBAL_X_POS
-	BASE_Y = a_baseY
 
-	upgradeRowCount = a_upgradePage.getRowCount()
+	### API DATA WRITER
+	def writeFirstHeroCardData(self, a_unitData, a_rowIndex):
 
-	pageToPrint = a_upgradePage
+		baseRowY = a_rowIndex * DEFAULT_CARD_HEIGHT
 
-	cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
+		global GLOBAL_X_POS
 
-	for headerString in pageToPrint.getHeaderData():
-		writeText(GLOBAL_X_POS, yPagePos, headerString, 8, 'B')
-		yPagePos += STEP_LINE_GLOBAL
-		cardRowBalance -= 1
+		GLOBAL_X_POS = 40
 
-	pdf.line(GLOBAL_X_POS, yPagePos-2, GLOBAL_X_POS+40, yPagePos-2)
+		self.writeCenteredText(20, 4 + baseRowY, a_unitData["name"], 9)
+		self.writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData["quaDef"], 14)
 
-	for upgrade in pageToPrint.getUpgrades():
+		self.pdf.line(0, 15 + baseRowY, 40, 15 + baseRowY)
 
-		if upgrade.getTotalLineCapacity() > cardRowBalance:
-			GLOBAL_X_POS += DEFAULT_CARD_WIDTH
-			cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
-			yPagePos = 4 + BASE_Y
+		# генерация кейвордов
+		heightShift = 20 + baseRowY
 
-		for upgradeLine in upgrade.getUpgradesLine():
-			for upgradeLineString in upgradeLine.getData():
-				writeText(GLOBAL_X_POS, yPagePos, upgradeLineString, 8)
-				yPagePos += STEP_LINE_GLOBAL
-
-		cardRowBalance -= upgrade.getTotalLineCapacity()
-		pdf.line(GLOBAL_X_POS, yPagePos-2, GLOBAL_X_POS + 40, yPagePos-2)
-
-	GLOBAL_X_POS += DEFAULT_CARD_WIDTH
-
-
-
-def getUpgradePages(a_upgradeObject):
-	tmpUpgrade = UpgradePage(a_upgradeObject["key"], a_upgradeObject["value"])
-	return tmpUpgrade
-
-
-
-def writeFillTest():
-	heightShift = 4
-	for i in range(DEFAULT_ROW_COUNT_PER_PAGE):
-		writeText(40, heightShift, "Some nights expired",10)
-		heightShift += STEP_LINE_GLOBAL
-
-
-
-def initHerCardData(obj):
-
-	tmpUnitName = obj["unitName"]
-	tmpUnitQuaDef = obj["quadef"]
-
-
-	keyWordsArr = []
-	tripletsKeywords = splitStringToTriples2(obj["keywords"])
-	for keywordTriplet in tripletsKeywords:
-		tripletStr = fromTripletToString(keywordTriplet)
-		keyWordsArr.append(tripletStr)
-
-	# блок вывода текущего оружия
-	tmpWeaponData = getUnitWeaponData(obj["weapon"])
-
-	tmpUnitData = UnitData(tmpUnitName, tmpUnitQuaDef, keyWordsArr, tmpWeaponData)
-
-	upgradeIndex = 0
-	#for upgrade in range(len(obj["upgrades"])-1):
-	for upgrade in obj["upgrades"]:
-		tmpUpgrade = getUpgradePages(upgrade)
-		tmpUnitData.addUpgradePage(tmpUpgrade)
-
-	#print("TOTAL PAGE COUNT -> ", tmpUnitData.getUnitDataPageCount())
-
-	return tmpUnitData
-
-
-
-def writeHeroCardData(a_unitData, a_rowIndex):
-
-	baseRowY = a_rowIndex * DEFAULT_CARD_HEIGHT
-
-	global GLOBAL_X_POS
-
-	GLOBAL_X_POS = 40
-
-	headerYPos = ()
-
-	writeCenteredText(20, 4 + baseRowY, a_unitData.getUnitName(), 9)
-	writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData.getQuaDef(), 14)
-
-	pdf.line(0, 15 + baseRowY, 40, 15 + baseRowY)
-
-	# генерация кейвордов
-	heightShift = 20 + baseRowY
-
-	for keywordTriplet in a_unitData.getKeywords():
-		writeCenteredText(20, heightShift, keywordTriplet, 8)
-		heightShift += STEP_LINE_GLOBAL
-
-	for weaponData in a_unitData.getWeaponData():
-		writeText(0, heightShift, weaponData["WeaponName"], 8)
-		heightShift += STEP_LINE_GLOBAL
-		writeText(0, heightShift, weaponData["WeaponSpecs"], 8)
-		heightShift += STEP_LINE_GLOBAL
-
-	# блок вывода страниц улучшений
-	for upgrade in a_unitData.getUpgradePages():
-		writeUpdgrade(baseRowY, 4 + baseRowY, upgrade)
-
-
-
-### API DATA WRITER
-def writeFirstHeroCardData(a_unitData, a_rowIndex):
-
-	baseRowY = a_rowIndex * DEFAULT_CARD_HEIGHT
-
-	global GLOBAL_X_POS
-
-	GLOBAL_X_POS = 40
-
-	headerYPos = ()
-
-	writeCenteredText(20, 4 + baseRowY, a_unitData["name"], 9)
-	writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData["quaDef"], 14)
-
-	pdf.line(0, 15 + baseRowY, 40, 15 + baseRowY)
-
-	# генерация кейвордов
-	heightShift = 20 + baseRowY
-
-	for keywordTriplet in a_unitData["unitTrinkets"]:
-		writeCenteredText(20, heightShift, keywordTriplet, 8)
-		heightShift += STEP_LINE_GLOBAL
-
-	for weaponData in a_unitData["weaponsData"]:
-		writeText(0, heightShift, weaponData["weaponName"], 8)
-		heightShift += STEP_LINE_GLOBAL
-		for weaponTrinketsLine in weaponData["trinkets"]:
-			writeText(0, heightShift, weaponTrinketsLine, 8)
+		for keywordTriplet in a_unitData["unitTrinkets"]:
+			self.writeCenteredText(20, heightShift, keywordTriplet, 8)
 			heightShift += STEP_LINE_GLOBAL
 
+		for weaponData in a_unitData["weaponsData"]:
+			self.writeText(0, heightShift, weaponData["weaponName"], 8)
+			heightShift += STEP_LINE_GLOBAL
+			for weaponTrinketsLine in weaponData["trinkets"]:
+				self.writeText(0, heightShift, weaponTrinketsLine, 8)
+				heightShift += STEP_LINE_GLOBAL
 
 
-def writeUpgradeHeroData(a_upgrade, a_yRow):
+	def writeUpgradeHeroData(self, a_upgrade, a_position):
 
-	global GLOBAL_X_POS
-	GLOBAL_X_POS = 40
-	cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
+		cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
 
-	upgrade = a_upgrade
+		upgrade = a_upgrade
 
-	# print header data
-	headerStrings = []
-	if AND_STRING in upgrade["upgradeName"]:
-		headerStrings = upgrade["upgradeName"].split(AND_STRING)
-		headerStrings[1] = AND_STRING + " " + headerStrings[1]
-		headerStrings[1] = headerStrings[1][1:]
-	else:
-		headerStrings = upgrade["upgradeName"]
 
-	for headerString in headerStrings:
-		writeText(GLOBAL_X_POS, a_yRow, headerString, 8, 'B')
-		a_yRow += STEP_LINE_GLOBAL
-		cardRowBalance -= 1
+		def checkEndPage():
+			nonlocal cardRowBalance
+			if cardRowBalance <= 0:
+				cardRowBalance = 12
+				a_position.y = 4
+				a_position.x += DEFAULT_CARD_WIDTH
 
-	# end print header data
 
-	# write gains
+		def makeRowStep():
+			nonlocal cardRowBalance
+			nonlocal cardRowBalance
 
-	for gain in upgrade["gains"]:
-		if len(gain["gainSpecRule"]) < 2:	# should print at same line as upgrade name
-			stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
-			writeText(GLOBAL_X_POS, a_yRow, stringToWrite, 8)
-			a_yRow += STEP_LINE_GLOBAL
+			a_position.y += STEP_LINE_GLOBAL
 			cardRowBalance -= 1
+
+
+		def makeStep():
+			makeRowStep()
+			checkEndPage()
+
+
+		def goToNextPage():
+			a_position.x += DEFAULT_CARD_WIDTH
+			a_position.y = 4
+
+
+		# print header data
+		headerStrings = []
+		if AND_STRING in upgrade["upgradeName"]:
+			headerStrings = upgrade["upgradeName"].split(AND_STRING)
+			headerStrings[1] = AND_STRING + " " + headerStrings[1]
+			headerStrings[1] = headerStrings[1][1:]
 		else:
-			stringToWrite = gain["gainName"]
-			writeText(GLOBAL_X_POS, a_yRow, stringToWrite, 8)
-			a_yRow += STEP_LINE_GLOBAL
-			cardRowBalance -= 1
+			headerStrings.append(upgrade["upgradeName"])
 
-			triples = fromCollectionToStringifyTriplets(gain["gainSpecRule"])
+		for headerString in headerStrings:
+			self.writeText(a_position.x, a_position.y, headerString, 8, 'B')
+			makeStep()
+		# end print header data
 
-			for triple in triples:
+		# write gains
+		for gain in upgrade["gains"]:
+			if len(gain["gainSpecRule"]) < 2:	# should print at same line as upgrade name
 
-				stringToWrite = triple
-				writeText(GLOBAL_X_POS, a_yRow, stringToWrite, 8)
-				a_yRow += STEP_LINE_GLOBAL
-				cardRowBalance -= 1
+				stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
+				#print(stringToWrite, " -> ", len(stringToWrite))
+				if len(stringToWrite) > MAX_STRING_LENGTH:
+					for st in [gain["gainName"], ("(" + gain["gainSpecRule"][0] + ")")]:
+						print(st)
+						self.writeText(a_position.x, a_position.y, st, 8)
+						makeStep()
+				else:
+					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+					makeStep()
+			else:
+				stringToWrite = gain["gainName"]
+				self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+				makeStep()
 
-	# end write gains
+				triples = fromCollectionToStringifyTriplets(gain["gainSpecRule"])
 
-	return
+				for triple in triples:
+					stringToWrite = triple
+					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+					makeStep()
+			self.pdf.line(a_position.x + 2, a_position.y - 2, a_position.x + 38, a_position.y - 2)
+		# end write gains - and also end write of upgrade
 
-	for headerString in pageToPrint.getHeaderData():
-		writeText(GLOBAL_X_POS, yPagePos, headerString, 8, 'B')
-		yPagePos += STEP_LINE_GLOBAL
-		cardRowBalance -= 1
+		goToNextPage()
 
-	pdf.line(GLOBAL_X_POS, yPagePos-2, GLOBAL_X_POS+40, yPagePos-2)
-
-	for upgrade in pageToPrint.getUpgrades():
-
-		if upgrade.getTotalLineCapacity() > cardRowBalance:
-			GLOBAL_X_POS += DEFAULT_CARD_WIDTH
-			cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
-			yPagePos = 4 + BASE_Y
-
-		for upgradeLine in upgrade.getUpgradesLine():
-			for upgradeLineString in upgradeLine.getData():
-				writeText(GLOBAL_X_POS, yPagePos, upgradeLineString, 8)
-				yPagePos += STEP_LINE_GLOBAL
-
-		cardRowBalance -= upgrade.getTotalLineCapacity()
-		pdf.line(GLOBAL_X_POS, yPagePos-2, GLOBAL_X_POS + 40, yPagePos-2)
-
-	GLOBAL_X_POS += DEFAULT_CARD_WIDTH
