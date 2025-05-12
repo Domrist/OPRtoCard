@@ -57,6 +57,31 @@ class CardGenerator:
 
 
 
+	def splitSingleGainWithBraces(self, a_string):
+
+		print("Incoming string to split -> ", a_string)
+		tmpArr = []
+		if "(" not in a_string:
+			return []
+
+		index = a_string.index("(")
+		splittedName = a_string[:index]
+		splittedUpgrade = a_string[index:]
+
+		# LATER REWRITE THAT STUFF
+		if splittedUpgrade[0] == "(" and splittedUpgrade[-1] == ")":
+			tmpArr = [splittedName, splittedUpgrade]
+		else:
+			splittedUpgrade = "(" + splittedUpgrade + ")"
+			tmpArr = [splittedName, splittedUpgrade]
+
+		print("SPlitted res => ", tmpArr)
+
+		return tmpArr
+
+
+
+
 	### API DATA WRITER
 	def writeFirstHeroCardData(self, a_unitData):
 
@@ -162,14 +187,26 @@ class CardGenerator:
 
 				specRulesLen = len(gain["gainSpecRule"])
 
-				if specRulesLen < 2 and specRulesLen > 0:	# should print at same line as upgrade name
-					#print(gain["gainSpecRule"])
+				if specRulesLen == 1:	# should print at same line as upgrade name
+
 					stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
+					print("STRING to write -> ", stringToWrite)
 					if len(stringToWrite) > MAX_STRING_LENGTH:
-						tmpArr = [gain["gainName"], ("(" + gain["gainSpecRule"][0] + ")")]
+						#tmpArr = [gain["gainName"], (gain["gainSpecRule"][0])]
+						tmpArr = [gain["gainName"]]
+
+						if self.getTextWidth(gain["gainSpecRule"][0], 8) > (DEFAULT_CARD_WIDTH-5):
+							tmpArr += self.splitSingleGainWithBraces(gain["gainSpecRule"][0])
+							pass
+						else:
+							tmpArr += gain["gainSpecRule"][0]
+
 						for st in range(len(tmpArr)):
+
 							self.writeText(a_position.x, a_position.y, tmpArr[st], 8)
+
 							if st == (len(tmpArr)-1) and gainIndex == len(iOption["gains"]) -1:
+								print(("TEXT {0} -> SIZE -> {1}").format(tmpArr[st], self.getTextWidth(tmpArr[st], 8)))
 								writePoints(tmpCost, a_position.x, a_position.y)
 							makeStep()
 					else:
