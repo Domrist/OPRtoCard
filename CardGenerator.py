@@ -29,7 +29,8 @@ class CardGenerator:
 
 	def writeCenteredText(self, x, y, text, sizee=10):
 		if x < 0:
-			print("LESS")
+			# we should throw error
+			pass
 		self.pdf.set_font(family = "Helvetica", size = sizee)
 		textLength = self.pdf.get_string_width(text)
 
@@ -42,10 +43,17 @@ class CardGenerator:
 
 
 
+	def getTextWidth(self, a_text, a_textSize = 10):
+		self.pdf.set_font(family = "Helvetica", size = a_textSize)
+		textLength = self.pdf.get_string_width(a_text)
+		textLength += (self.pdf.c_margin * 2)
+		return textLength
+
+
+
 	def fillTest(self):
 		sss = "0123456789"
 		self.writeText(40, 4, sss, 10)
-		print(len(sss))
 
 
 
@@ -113,6 +121,13 @@ class CardGenerator:
 			a_position.x += DEFAULT_CARD_WIDTH
 
 
+		def writePoints(a_cost, a_x, a_y):
+			localTextWidth = self.getTextWidth( str(a_cost)+ "pts", 8)
+			textXPos = a_x + DEFAULT_CARD_WIDTH - (localTextWidth)
+			self.writeText(textXPos, a_y, str(a_cost) + "pts", 8)
+
+
+
 		# print header data
 		headerStrings = []
 		if AND_STRING in upgrade["upgradeName"]:
@@ -127,39 +142,56 @@ class CardGenerator:
 			makeStep()
 		# end print header data
 
-		# write gains
-		for gain in upgrade["gains"]:
+		#####
 
-			specRulesLen = len(gain["gainSpecRule"])
+		for iOption in upgrade["options"]:
+			tmpCost = iOption["cost"]
 
-			if specRulesLen < 2 and specRulesLen > 0:	# should print at same line as upgrade name
-				print(gain["gainSpecRule"])
-				stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
-				if len(stringToWrite) > MAX_STRING_LENGTH:
-					for st in [gain["gainName"], ("(" + gain["gainSpecRule"][0] + ")")]:
-						self.writeText(a_position.x, a_position.y, st, 8)
+			for gainEnumerate in enumerate(iOption["gains"]):
+
+				gain = gainEnumerate[1]
+				gainIndex = gainEnumerate[0]
+
+				specRulesLen = len(gain["gainSpecRule"])
+
+				if specRulesLen < 2 and specRulesLen > 0:	# should print at same line as upgrade name
+					#print(gain["gainSpecRule"])
+					stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
+					if len(stringToWrite) > MAX_STRING_LENGTH:
+						tmpArr = [gain["gainName"], ("(" + gain["gainSpecRule"][0] + ")")]
+						for st in range(len(tmpArr)):
+							self.writeText(a_position.x, a_position.y, tmpArr[st], 8)
+							if st == (len(tmpArr)-1) and gainIndex == len(iOption["gains"]) -1:
+								writePoints(tmpCost, a_position.x, a_position.y)
+							makeStep()
+					else:
+						self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+						writePoints(tmpCost, a_position.x, a_position.y)
 						makeStep()
-				else:
+
+				elif specRulesLen >= 2:
+					stringToWrite = gain["gainName"]
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 					makeStep()
-			elif specRulesLen >= 2:
-				stringToWrite = gain["gainName"]
-				self.writeText(a_position.x, a_position.y, stringToWrite, 8)
-				makeStep()
 
-				triples = fromCollectionToStringifyTriplets(gain["gainSpecRule"])
+					triples = fromCollectionToStringifyTriplets(gain["gainSpecRule"])
 
-				for triple in triples:
-					stringToWrite = triple
+					for tripleIndex in range(len(triples)):
+						stringToWrite = triples[tripleIndex]
+						self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+						if tripleIndex == (len(triples)-1) and gainIndex == (len(iOption["gains"]) -1):
+							writePoints(tmpCost, a_position.x, a_position.y)
+						makeStep()
+
+				elif specRulesLen == 0:
+					stringToWrite = gain["gainName"]
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+					writePoints(tmpCost, a_position.x, a_position.y)
 					makeStep()
-			elif specRulesLen == 0:
-				stringToWrite = gain["gainName"]
-				self.writeText(a_position.x, a_position.y, stringToWrite, 8)
-				makeStep()
 
 
-		self.pdf.line(a_position.x + 2, a_position.y - 2, a_position.x + 38, a_position.y - 2)
+			self.pdf.line(a_position.x + 2, a_position.y - 2, a_position.x + 38, a_position.y - 2)
+
 		goToNextPage()
 		# end write gains - and also end write of upgrade
 

@@ -92,21 +92,37 @@ def getUnitUpgrades(a_unit, a_totalUpgrades):
 				continue
 
 			unitId = a_unit["id"]
+			upgrade = {}
 
-			upgradeSections = upgradePack["sections"]
-			for upgradeSection in upgradeSections:
-
-				upgrade = {}
+			for upgradeSection in upgradePack["sections"]:
 				upgrade["upgradeName"] = upgradeSection["label"]
+				options = []
 
-				gains = []
+				for iOption in upgradeSection["options"]:
+					option = {}
+					### cost block
+					option["cost"] = 0
+					if "cost" in iOption:
+						option["cost"] = iOption["cost"]
+					if 'costs' in iOption:
+						for cost in iOption["costs"]:
+							if cost["unitId"] == unitId:
+								option["cost"] = cost["cost"]
+					### end cost block
 
-				for option in upgradeSection["options"]:
-					for gain in option["gains"]:
+
+					### gains block
+					gains = []
+					for gain in iOption["gains"]:
 						gainData = getGainData(gain)
 						gains.append({"gainName":gainData["gainName"],"gainSpecRule":gainData["gainSpecRule"]})
 
-				upgrade["gains"] = gains
-				upgradesList.append(upgrade)
+					option["gains"] = gains
+					### end gains block
+					options.append(option)
+
+				upgrade["options"] = options
+				upgradesList.append(upgrade.copy())
+				upgrade.clear()
 
 	return upgradesList

@@ -16,7 +16,6 @@ units = obj["units"]
 
 
 upgradePackage = obj["upgradePackages"] ### CONST
-print(upgradePackage)
 
 counterRow = 0
 
@@ -31,7 +30,9 @@ for unit in obj["units"]:
 
 	unitUpgrades = getUnitUpgrades(unit, upgradePackage)
 
+
 	for unitUpgrade in unitUpgrades:
+		#print("UNIT_UPGRADE =>", unitUpgrade["options"], "\n\n")
 		cardGenerator.writeUpgradeHeroData(unitUpgrade, position)
 
 	for cell in range(int(position.x / DEFAULT_CARD_WIDTH)):
