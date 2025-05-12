@@ -129,16 +129,24 @@ class CardGenerator:
 
 
 		# print header data
+
+		headerTextFontSize = 8
+		self.pdf.set_font(family = "Helvetica", style = "B", size = headerTextFontSize)
+
 		headerStrings = []
 		if AND_STRING in upgrade["upgradeName"]:
 			headerStrings = upgrade["upgradeName"].split(AND_STRING)
 			headerStrings[1] = AND_STRING + " " + headerStrings[1]
 			headerStrings[1] = headerStrings[1][1:]
 		else:
+			while self.getTextWidth(upgrade["upgradeName"], headerTextFontSize) > (DEFAULT_CARD_WIDTH - self.pdf.c_margin*2):
+				headerTextFontSize -= 1
+				self.pdf.set_font(family = "Helvetica", style = "B", size = headerTextFontSize)
 			headerStrings.append(upgrade["upgradeName"])
 
+
 		for headerString in headerStrings:
-			self.writeText(a_position.x, a_position.y, headerString, 8, 'B')
+			self.writeText(a_position.x, a_position.y, headerString, headerTextFontSize, 'B')
 			makeStep()
 		# end print header data
 
