@@ -23,7 +23,7 @@ def getFirstPageWeaponData(a_weaponData):
 
 
 
-### DONE - WITHOUT POINTS
+### DONE
 def getGainData(a_gainObject):
 
 	tmpArr = []
@@ -81,7 +81,7 @@ def getFirstPageData(a_unit):
 
 
 
-### DONE - WITHOUT POINTS
+### DONE
 def getUnitUpgrades(a_unit, a_totalUpgrades):
 
 	upgradesList = []

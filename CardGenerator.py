@@ -2,8 +2,6 @@ from fpdf import FPDF
 
 from contants import *
 
-from fpdf import FPDF
-
 
 class CardGenerator:
 
@@ -78,6 +76,107 @@ class CardGenerator:
 		print("SPlitted res => ", tmpArr)
 
 		return tmpArr
+
+
+	# for string 'Realm Lord(Private Guard(Men-at-Arms))' recursion level is 2
+	###Realm Lord
+	###|-Private Guard
+	###|--Men-at-Arms
+	# for string 'Realm Lord(Ap(1), Atk(3))' recursion level is 1
+	###Realm Lord(
+	###|-Ap(1)
+	###|-Atk(3)
+
+
+	#### BLOCK FOR ADDING NEW WAY TO CALCULATE STheaderStrings
+
+	def splitStringByTopLevelBraces(self, a_string):
+		arr = []
+
+		counter = 0
+		lowerBorder = 0
+		higherBorder = 0
+
+		for i in a_string:
+			higherBorder += 1
+			if i == "(":
+				counter += 1
+			elif i == ")":
+				counter -= 1
+			elif i == "," and counter == 0:
+				arr.append(a_string[lowerBorder:higherBorder-1])
+				lowerBorder = higherBorder
+
+			if higherBorder == len(a_string):
+				arr.append(a_string[lowerBorder:higherBorder])
+
+		return arr
+
+
+
+	def getGetCollectionFromNestedString(self, a_string):
+
+		objectToModify = {}
+
+		objectToModify["nodeCaption"] = ""
+		objectToModify["nodeChilds"] = []
+		objectToModify["nodeValues"] = []
+
+		if a_string.count("(") == 0:	# Fast/Hero/etc
+
+			objectToModify["nodeCaption"] = a_string
+			return objectToModify
+
+		else:
+
+			objectToModify["nodeCaption"] = a_string[:a_string.find("(")]
+
+			nextStringParse = a_string[a_string.find("(") + 1:a_string.rfind(")")]
+
+			for item in self.splitStringByTopLevelBraces(nextStringParse):
+				if item.count("(") == 1 and item.count(")") == 1:
+
+					tmpObject = {}
+					tmpObject["nodeChilds"] = []
+					tmpObject["nodeCaption"] = item[:item.find("(")]
+					tmpObject["nodeValues"] = []
+					tmpObject["nodeValues"].append(item[item.find("(")+1:item.find(")")])
+
+					objectToModify["nodeChilds"].append(tmpObject)
+				else:
+
+					obj = self.getGetCollectionFromNestedString(item)
+					objectToModify["nodeChilds"].append(obj)
+
+			return objectToModify
+
+
+
+	def appendObjectFromNestedCollectionToArray(self, a_obj, a_arr, a_recursionLevel = 0):
+
+		localRecursionLevel = a_recursionLevel
+
+		appendedString = ""
+		if a_recursionLevel != 0:
+			appendedString = "|"
+
+		strToAdd = appendedString + ("-" * a_recursionLevel) + a_obj["nodeCaption"]
+
+		if len(a_obj["nodeValues"]) == 1:
+			if self.getTextWidth( strToAdd + str(a_obj["nodeValues"][0]), 10) >DEFAULT_CARD_WIDTH - 10:
+				a_arr.append(strToAdd)
+				a_arr.append(appendedString + ("-" * (a_recursionLevel + 1)) +  str(a_obj["nodeValues"][0]))
+		elif len(a_obj["nodeValues"]) > 1:
+			for nodeValue in a_obj["nodeValues"]:
+				a_arr.append(str(nodeValue))
+
+
+		for child in a_obj["nodeChilds"]:
+			self.appendObjectFromNestedCollectionToArray(child, a_arr, localRecursionLevel + 1)
+
+		return a_arr
+
+	#### END OF THIS BLOCK
 
 
 
@@ -190,23 +289,22 @@ class CardGenerator:
 				if specRulesLen == 1:	# should print at same line as upgrade name
 
 					stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
-					print("STRING to write -> ", stringToWrite)
+					#print("STRING to write -> ", stringToWrite)
 					if len(stringToWrite) > MAX_STRING_LENGTH:
-						#tmpArr = [gain["gainName"], (gain["gainSpecRule"][0])]
-						tmpArr = [gain["gainName"]]
-
+						obj = self.getGetCollectionFromNestedString(stringToWrite)
+						tmpArr = []
 						if self.getTextWidth(gain["gainSpecRule"][0], 8) > (DEFAULT_CARD_WIDTH-5):
-							tmpArr += self.splitSingleGainWithBraces(gain["gainSpecRule"][0])
-							pass
-						else:
-							tmpArr += gain["gainSpecRule"][0]
+							self.appendObjectFromNestedCollectionToArray(obj, tmpArr)
+							print("STRING TO PREPARES -> ", tmpArr)
+						# 	tmpArr += self.splitSingleGainWithBraces(gain["gainSpecRule"][0])
+						#tmpArr += gain["gainSpecRule"][0]
 
 						for st in range(len(tmpArr)):
 
 							self.writeText(a_position.x, a_position.y, tmpArr[st], 8)
 
 							if st == (len(tmpArr)-1) and gainIndex == len(iOption["gains"]) -1:
-								print(("TEXT {0} -> SIZE -> {1}").format(tmpArr[st], self.getTextWidth(tmpArr[st], 8)))
+								#print(("TEXT {0} -> SIZE -> {1}").format(tmpArr[st], self.getTextWidth(tmpArr[st], 8)))
 								writePoints(tmpCost, a_position.x, a_position.y)
 							makeStep()
 					else:
@@ -214,7 +312,7 @@ class CardGenerator:
 						writePoints(tmpCost, a_position.x, a_position.y)
 						makeStep()
 
-				elif specRulesLen >= 2:
+				elif specRulesLen >= 2:	### should be check for triplets length
 					stringToWrite = gain["gainName"]
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 					makeStep()
