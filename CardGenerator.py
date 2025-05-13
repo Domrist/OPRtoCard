@@ -180,7 +180,6 @@ class CardGenerator:
 
 
 
-
 	### API DATA WRITER
 	def writeFirstHeroCardData(self, a_unitData):
 
@@ -208,6 +207,36 @@ class CardGenerator:
 			for weaponTrinketsLine in weaponData["trinkets"]:
 				self.writeText(0, heightShift, weaponTrinketsLine, 8)
 				heightShift += STEP_LINE_GLOBAL
+
+
+
+	def writeSingleLineSpecRules(self, a_option, a_gain, a_gainIndex, a_tmpCost, a_position, a_makeStepFunction, a_writePointsFunction):
+		#'''
+		stringToWrite = a_gain["gainName"] + "(" + a_gain["gainSpecRule"][0] + ")"
+		print("STRING to write -> ", stringToWrite)
+		if len(stringToWrite) > MAX_STRING_LENGTH:
+			obj = self.getGetCollectionFromNestedString(stringToWrite)
+			tmpArr = []
+			if self.getTextWidth(a_gain["gainSpecRule"][0], 8) > (DEFAULT_CARD_WIDTH-5):
+				self.appendObjectFromNestedCollectionToArray(obj, tmpArr)
+				print("STRING TO PREPARES -> ", tmpArr)
+			# 	tmpArr += self.splitSingleGainWithBraces(gain["gainSpecRule"][0])
+			#tmpArr += gain["gainSpecRule"][0]
+
+			for st in range(len(tmpArr)):
+
+				self.writeText(a_position.x, a_position.y, tmpArr[st], 8)
+
+				if st == (len(tmpArr)-1) and a_gainIndex == len(a_option["gains"]) -1:
+					#print(("TEXT {0} -> SIZE -> {1}").format(tmpArr[st], self.getTextWidth(tmpArr[st], 8)))
+					a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
+				a_makeStepFunction()
+		else:
+			self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+			a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
+			a_makeStepFunction()
+		#'''
+
 
 
 
@@ -287,31 +316,7 @@ class CardGenerator:
 				specRulesLen = len(gain["gainSpecRule"])
 
 				if specRulesLen == 1:	# should print at same line as upgrade name
-
-					stringToWrite = gain["gainName"] + "(" + gain["gainSpecRule"][0] + ")"
-					#print("STRING to write -> ", stringToWrite)
-					if len(stringToWrite) > MAX_STRING_LENGTH:
-						obj = self.getGetCollectionFromNestedString(stringToWrite)
-						tmpArr = []
-						if self.getTextWidth(gain["gainSpecRule"][0], 8) > (DEFAULT_CARD_WIDTH-5):
-							self.appendObjectFromNestedCollectionToArray(obj, tmpArr)
-							print("STRING TO PREPARES -> ", tmpArr)
-						# 	tmpArr += self.splitSingleGainWithBraces(gain["gainSpecRule"][0])
-						#tmpArr += gain["gainSpecRule"][0]
-
-						for st in range(len(tmpArr)):
-
-							self.writeText(a_position.x, a_position.y, tmpArr[st], 8)
-
-							if st == (len(tmpArr)-1) and gainIndex == len(iOption["gains"]) -1:
-								#print(("TEXT {0} -> SIZE -> {1}").format(tmpArr[st], self.getTextWidth(tmpArr[st], 8)))
-								writePoints(tmpCost, a_position.x, a_position.y)
-							makeStep()
-					else:
-						self.writeText(a_position.x, a_position.y, stringToWrite, 8)
-						writePoints(tmpCost, a_position.x, a_position.y)
-						makeStep()
-
+					self.writeSingleLineSpecRules(iOption, gain, gainIndex, tmpCost, a_position, makeStep, writePoints)
 				elif specRulesLen >= 2:	### should be check for triplets length
 					stringToWrite = gain["gainName"]
 					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
