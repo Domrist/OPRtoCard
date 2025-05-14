@@ -57,7 +57,6 @@ class CardGenerator:
 
 	def splitSingleGainWithBraces(self, a_string):
 
-		print("Incoming string to split -> ", a_string)
 		tmpArr = []
 		if "(" not in a_string:
 			return []
@@ -72,8 +71,6 @@ class CardGenerator:
 		else:
 			splittedUpgrade = "(" + splittedUpgrade + ")"
 			tmpArr = [splittedName, splittedUpgrade]
-
-		print("SPlitted res => ", tmpArr)
 
 		return tmpArr
 
@@ -90,6 +87,7 @@ class CardGenerator:
 
 	#### BLOCK FOR ADDING NEW WAY TO CALCULATE STheaderStrings
 
+	# разделение строки типап 'Ap(1), Fast, Blast(5), Furios' на массив типа [ 'Ap(1)', 'Fast', 'Blast(5)', 'Furios']
 	def splitStringByTopLevelBraces(self, a_string):
 		arr = []
 
@@ -113,7 +111,7 @@ class CardGenerator:
 		return arr
 
 
-
+	# превращение строки типа 'Realm Lord(Private Guard(Men-at-Arms(Realm Lord(Private Guard( AP(1), Men-at-Arms)))))' в удобную для обхода структуру
 	def getGetCollectionFromNestedString(self, a_string):
 
 		objectToModify = {}
@@ -150,6 +148,7 @@ class CardGenerator:
 
 			return objectToModify
 
+		return objectToModify
 
 
 	def appendObjectFromNestedCollectionToArray(self, a_obj, a_arr, a_recursionLevel = 0):
@@ -160,15 +159,16 @@ class CardGenerator:
 		if a_recursionLevel != 0:
 			appendedString = "|"
 
-		strToAdd = appendedString + ("-" * a_recursionLevel) + a_obj["nodeCaption"]
+		a_arr.append(appendedString + ("-" * a_recursionLevel) + a_obj["nodeCaption"])
 
 		if len(a_obj["nodeValues"]) == 1:
-			if self.getTextWidth( strToAdd + str(a_obj["nodeValues"][0]), 10) >DEFAULT_CARD_WIDTH - 10:
-				a_arr.append(strToAdd)
-				a_arr.append(appendedString + ("-" * (a_recursionLevel + 1)) +  str(a_obj["nodeValues"][0]))
-		elif len(a_obj["nodeValues"]) > 1:
+			if self.getTextWidth( ("{0}({1})").format(a_arr[-1], a_obj["nodeValues"][0]), 8) > (DEFAULT_CARD_WIDTH - 10):
+				a_arr.append(appendedString + ("-" * (a_recursionLevel + 1)) + a_obj["nodeValues"][0])
+			else:
+				a_arr[-1] = ("{0}({1})").format(a_arr[-1], a_obj["nodeValues"][0])
+		else:
 			for nodeValue in a_obj["nodeValues"]:
-				a_arr.append(str(nodeValue))
+				a_arr.append(appendedString + ("-" * (a_recursionLevel+1)) + str(nodeValue))
 
 
 		for child in a_obj["nodeChilds"]:
@@ -211,31 +211,62 @@ class CardGenerator:
 
 
 	def writeSingleLineSpecRules(self, a_option, a_gain, a_gainIndex, a_tmpCost, a_position, a_makeStepFunction, a_writePointsFunction):
-		#'''
 		stringToWrite = a_gain["gainName"] + "(" + a_gain["gainSpecRule"][0] + ")"
-		print("STRING to write -> ", stringToWrite)
 		if len(stringToWrite) > MAX_STRING_LENGTH:
+
 			obj = self.getGetCollectionFromNestedString(stringToWrite)
 			tmpArr = []
-			if self.getTextWidth(a_gain["gainSpecRule"][0], 8) > (DEFAULT_CARD_WIDTH-5):
+
+			if self.getTextWidth(a_gain["gainSpecRule"][0], 8) > (DEFAULT_CARD_WIDTH-10):
 				self.appendObjectFromNestedCollectionToArray(obj, tmpArr)
-				print("STRING TO PREPARES -> ", tmpArr)
-			# 	tmpArr += self.splitSingleGainWithBraces(gain["gainSpecRule"][0])
-			#tmpArr += gain["gainSpecRule"][0]
 
 			for st in range(len(tmpArr)):
 
 				self.writeText(a_position.x, a_position.y, tmpArr[st], 8)
 
 				if st == (len(tmpArr)-1) and a_gainIndex == len(a_option["gains"]) -1:
-					#print(("TEXT {0} -> SIZE -> {1}").format(tmpArr[st], self.getTextWidth(tmpArr[st], 8)))
 					a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
 				a_makeStepFunction()
 		else:
 			self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 			a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
 			a_makeStepFunction()
-		#'''
+
+
+
+	def writeTripletsSpecRules(self, a_option, a_gain, a_gainIndex, a_tmpCost, a_position, a_makeStepFunction, a_writePointsFunction):
+		stringToWrite = a_gain["gainName"]
+		self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+		a_makeStepFunction()
+
+		finalTriples = []
+
+		triples = fromCollectionToStringifyTriplets(a_gain["gainSpecRule"])
+
+		for triple in triples:
+			if self.getTextWidth(triple, 8) > (DEFAULT_CARD_WIDTH-10):
+				index = len(a_gain["gainSpecRule"])
+
+				while len(a_gain["gainSpecRule"]) != 0:
+					st = ",".join(a_gain["gainSpecRule"][:index])
+
+					if self.getTextWidth(st, 8) > (DEFAULT_CARD_WIDTH-10):
+						index -= 1
+					else:
+						finalTriples.append(st)
+						a_gain["gainSpecRule"] = a_gain["gainSpecRule"][index:]
+						index = len(a_gain["gainSpecRule"])
+			else:
+				finalTriples.append(triple)
+
+
+
+		for tripleIndex in range(len(finalTriples)):
+			stringToWrite = finalTriples[tripleIndex]
+			self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+			if tripleIndex == (len(finalTriples)-1) and a_gainIndex == (len(a_option["gains"]) -1):
+				a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
+			a_makeStepFunction()
 
 
 
@@ -318,18 +349,7 @@ class CardGenerator:
 				if specRulesLen == 1:	# should print at same line as upgrade name
 					self.writeSingleLineSpecRules(iOption, gain, gainIndex, tmpCost, a_position, makeStep, writePoints)
 				elif specRulesLen >= 2:	### should be check for triplets length
-					stringToWrite = gain["gainName"]
-					self.writeText(a_position.x, a_position.y, stringToWrite, 8)
-					makeStep()
-
-					triples = fromCollectionToStringifyTriplets(gain["gainSpecRule"])
-
-					for tripleIndex in range(len(triples)):
-						stringToWrite = triples[tripleIndex]
-						self.writeText(a_position.x, a_position.y, stringToWrite, 8)
-						if tripleIndex == (len(triples)-1) and gainIndex == (len(iOption["gains"]) -1):
-							writePoints(tmpCost, a_position.x, a_position.y)
-						makeStep()
+					self.writeTripletsSpecRules(iOption, gain, gainIndex, tmpCost, a_position, makeStep, writePoints)
 
 				elif specRulesLen == 0:
 					stringToWrite = gain["gainName"]
