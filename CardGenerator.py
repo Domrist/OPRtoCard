@@ -236,29 +236,30 @@ class CardGenerator:
 
 		triples = fromCollectionToStringifyTriplets(a_gain["gainSpecRule"])
 
-		for triple in triples:
-			if self.getTextWidth(triple, 8) > (DEFAULT_CARD_WIDTH-10):
-				index = len(a_gain["gainSpecRule"])
+		print("INCOMING RULES -> ", a_gain["gainSpecRule"])
 
-				while len(a_gain["gainSpecRule"]) != 0:
-					st = ",".join(a_gain["gainSpecRule"][:index])
+		gainSpecs = a_gain["gainSpecRule"]
 
-					if self.getTextWidth(st, 8) > (DEFAULT_CARD_WIDTH-10):
-						index -= 1
-					else:
-						finalTriples.append(st)
-						a_gain["gainSpecRule"] = a_gain["gainSpecRule"][index:]
-						index = len(a_gain["gainSpecRule"])
+		index = len(gainSpecs)
+
+		while len(gainSpecs) != 0:
+			st = ",".join(gainSpecs[:index])
+
+			if self.getTextWidth(st, 8) > (DEFAULT_CARD_WIDTH-10):
+				index -= 1
 			else:
-				finalTriples.append(triple)
-
+				finalTriples.append(st)
+				gainSpecs = gainSpecs[index:]
+				index = len(gainSpecs)
 
 
 		for tripleIndex in range(len(finalTriples)):
 			stringToWrite = finalTriples[tripleIndex]
+
 			self.pdf.set_text_color(128)
 			self.writeText(a_position.x, a_position.y, stringToWrite, 8)
 			self.pdf.set_text_color(0)
+
 			if tripleIndex == (len(finalTriples)-1) and a_gainIndex == (len(a_option["gains"]) -1):
 				a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
 			a_makeStepFunction()
@@ -282,15 +283,18 @@ class CardGenerator:
 				a_position.x += DEFAULT_CARD_WIDTH
 
 
-		def makeRowStep():
+		def makeRowStep(a_isFinalRowStep = -1):
 			nonlocal cardRowBalance
 
 			a_position.y += STEP_LINE_GLOBAL
+			if a_isFinalRowStep != -1:
+				a_position.y += a_isFinalRowStep
+
 			cardRowBalance -= 1
 
 
-		def makeStep():
-			makeRowStep()
+		def makeStep(a_isFinalRowStep = -1):
+			makeRowStep(a_isFinalRowStep)
 			checkEndPage()
 
 
@@ -324,8 +328,8 @@ class CardGenerator:
 			headerStrings.append(upgrade["upgradeName"])
 
 
-		for headerString in headerStrings:
-			self.writeText(a_position.x, a_position.y, headerString, headerTextFontSize, 'B')
+		for headerStringIndex in range(len(headerStrings)):
+			self.writeText(a_position.x, a_position.y, headerStrings[headerStringIndex], headerTextFontSize, 'B')
 			makeStep()
 		# end print header data
 
