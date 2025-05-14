@@ -75,17 +75,6 @@ class CardGenerator:
 		return tmpArr
 
 
-	# for string 'Realm Lord(Private Guard(Men-at-Arms))' recursion level is 2
-	###Realm Lord
-	###|-Private Guard
-	###|--Men-at-Arms
-	# for string 'Realm Lord(Ap(1), Atk(3))' recursion level is 1
-	###Realm Lord(
-	###|-Ap(1)
-	###|-Atk(3)
-
-
-	#### BLOCK FOR ADDING NEW WAY TO CALCULATE STheaderStrings
 
 	# разделение строки типап 'Ap(1), Fast, Blast(5), Furios' на массив типа [ 'Ap(1)', 'Fast', 'Blast(5)', 'Furios']
 	def splitStringByTopLevelBraces(self, a_string):
@@ -151,6 +140,7 @@ class CardGenerator:
 		return objectToModify
 
 
+
 	def appendObjectFromNestedCollectionToArray(self, a_obj, a_arr, a_recursionLevel = 0):
 
 		localRecursionLevel = a_recursionLevel
@@ -176,8 +166,6 @@ class CardGenerator:
 
 		return a_arr
 
-	#### END OF THIS BLOCK
-
 
 
 	### API DATA WRITER
@@ -190,7 +178,10 @@ class CardGenerator:
 		GLOBAL_X_POS = 40
 
 		self.writeCenteredText(20, 4 + baseRowY, a_unitData["name"], 9)
-		self.writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData["quaDef"], 14)
+		with self.pdf.local_context(text_mode = 2, line_width=0):
+			self.pdf.set_text_color(255, 50, 15)
+			self.writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData["quaDef"], 14)
+
 
 		self.pdf.line(0, 15 + baseRowY, 40, 15 + baseRowY)
 
@@ -236,7 +227,9 @@ class CardGenerator:
 
 	def writeTripletsSpecRules(self, a_option, a_gain, a_gainIndex, a_tmpCost, a_position, a_makeStepFunction, a_writePointsFunction):
 		stringToWrite = a_gain["gainName"]
+		self.pdf.set_text_color(0)
 		self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+		self.pdf.set_text_color(0)
 		a_makeStepFunction()
 
 		finalTriples = []
@@ -263,7 +256,9 @@ class CardGenerator:
 
 		for tripleIndex in range(len(finalTriples)):
 			stringToWrite = finalTriples[tripleIndex]
+			self.pdf.set_text_color(128)
 			self.writeText(a_position.x, a_position.y, stringToWrite, 8)
+			self.pdf.set_text_color(0)
 			if tripleIndex == (len(finalTriples)-1) and a_gainIndex == (len(a_option["gains"]) -1):
 				a_writePointsFunction(a_tmpCost, a_position.x, a_position.y)
 			a_makeStepFunction()

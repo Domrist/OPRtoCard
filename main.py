@@ -2,6 +2,7 @@ import json
 from CardGenerator import *
 from APIJSONParser import *
 import requests
+from contants import *
 
 
 pdf = FPDF(orientation='L', unit='mm', format='A4')
@@ -37,7 +38,7 @@ for unit in obj["units"]:
 		cardGenerator.writeUpgradeHeroData(unitUpgrade, position)
 
 	for cell in range(int(position.x / DEFAULT_CARD_WIDTH)):
-		pdf.rect(40 * cell, DEFAULT_CARD_HEIGHT * cardGenerator.yRowScalerPerPage, DEFAULT_CARD_WIDTH, DEFAULT_CARD_HEIGHT)
+		pdf.rect(DEFAULT_CARD_WIDTH * cell, DEFAULT_CARD_HEIGHT * cardGenerator.yRowScalerPerPage, DEFAULT_CARD_WIDTH, DEFAULT_CARD_HEIGHT)
 
 	cardGenerator.increaseRowScaler()
 
