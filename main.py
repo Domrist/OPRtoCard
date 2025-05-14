@@ -11,9 +11,13 @@ cardGenerator = CardGenerator(pdf)
 
 y = requests.get('https://army-forge.onepagerules.com/api/army-books/FF4UemWHh60T1VRq?gameSystem=5')
 x = requests.get('https://army-forge.onepagerules.com/api/army-books/vJuokTQpJWj3_MrJ?gameSystem=5')
+saurians = requests.get('https://army-forge.onepagerules.com/api/army-books/BubhE1kUpgYbqZvW?gameSystem=5')
+ratmens = requests.get('https://army-forge.onepagerules.com/api/army-books/tOWt5fgqK2nfpoBN?gameSystem=5')
 
-obj = json.loads(y.content)
+#obj = json.loads(y.content)
 #obj = json.loads(x.content)
+#obj = json.loads(saurians.content)
+obj = json.loads(ratmens.content)
 units = obj["units"]
 
 

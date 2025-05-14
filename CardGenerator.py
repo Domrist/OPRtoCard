@@ -178,6 +178,7 @@ class CardGenerator:
 		GLOBAL_X_POS = 40
 
 		self.writeCenteredText(20, 4 + baseRowY, a_unitData["name"], 9)
+
 		with self.pdf.local_context(text_mode = 2, line_width=0):
 			self.pdf.set_text_color(255, 50, 15)
 			self.writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData["quaDef"], 14)
@@ -236,8 +237,6 @@ class CardGenerator:
 
 		triples = fromCollectionToStringifyTriplets(a_gain["gainSpecRule"])
 
-		print("INCOMING RULES -> ", a_gain["gainSpecRule"])
-
 		gainSpecs = a_gain["gainSpecRule"]
 
 		index = len(gainSpecs)
@@ -273,13 +272,11 @@ class CardGenerator:
 
 		upgrade = a_upgrade
 
-		#a_position.y = 4 + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
-
 		def checkEndPage():
 			nonlocal cardRowBalance
 			if cardRowBalance <= 0:
-				cardRowBalance = 12
-				a_position.y = 4 + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
+				cardRowBalance = DEFAULT_ROW_COUNT_PER_PAGE
+				a_position.y = NAME_TOP_MARGIN + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
 				a_position.x += DEFAULT_CARD_WIDTH
 
 
@@ -300,7 +297,7 @@ class CardGenerator:
 
 		def goToNextPage():
 			nonlocal cardRowBalance
-			a_position.y = 4 + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
+			a_position.y = NAME_TOP_MARGIN + DEFAULT_CARD_HEIGHT * self.yRowScalerPerPage
 			a_position.x += DEFAULT_CARD_WIDTH
 
 
@@ -331,6 +328,7 @@ class CardGenerator:
 		for headerStringIndex in range(len(headerStrings)):
 			self.writeText(a_position.x, a_position.y, headerStrings[headerStringIndex], headerTextFontSize, 'B')
 			makeStep()
+
 		# end print header data
 
 		#####
