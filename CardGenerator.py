@@ -177,8 +177,10 @@ class CardGenerator:
 
 		GLOBAL_X_POS = 40
 
+		# UNIT NAME
 		self.writeCenteredText(20, 4 + baseRowY, a_unitData["name"], 9)
 
+		# QUA - DEF
 		with self.pdf.local_context(text_mode = 2, line_width=0):
 			self.pdf.set_text_color(255, 50, 15)
 			self.writeCenteredText(20, DEFAULT_ROW_COUNT_PER_PAGE + baseRowY, a_unitData["quaDef"], 14)
@@ -186,12 +188,26 @@ class CardGenerator:
 
 		self.pdf.line(0, 15 + baseRowY, 40, 15 + baseRowY)
 
-		# генерация кейвордов
+		# запись кейвордов
 		heightShift = 20 + baseRowY
 
-		for keywordTriplet in a_unitData["unitTrinkets"]:
-			self.writeCenteredText(20, heightShift, keywordTriplet, 8)
-			heightShift += STEP_LINE_GLOBAL
+		if len(a_unitData["unitTrinkets"]) != 0:
+			unitTrinketCollection = self.splitStringByTopLevelBraces(a_unitData["unitTrinkets"][0])
+			trinketIndex = len(unitTrinketCollection)
+
+			while len(unitTrinketCollection) > 0:
+				strToCompare = ",".join(unitTrinketCollection[:trinketIndex])
+
+				if self.getTextWidth(strToCompare, 8) > DEFAULT_CARD_WIDTH - 3:
+					trinketIndex -= 1
+					continue
+
+				self.writeCenteredText(20, heightShift, strToCompare, 8)
+				heightShift += STEP_LINE_GLOBAL
+				unitTrinketCollection = unitTrinketCollection[trinketIndex:]
+				trinketIndex = len(unitTrinketCollection)
+
+		# запись оружия
 
 		for weaponData in a_unitData["weaponsData"]:
 			self.writeText(0, heightShift, weaponData["weaponName"], 8)
