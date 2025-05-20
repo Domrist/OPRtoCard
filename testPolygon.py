@@ -82,6 +82,10 @@ def appendObjectFromNestedCollectionToArray(a_obj, a_arr, a_recursionLevel = 0):
 
 	a_arr.append(appendedString + ("-" * a_recursionLevel) + a_obj["nodeCaption"])
 
+	if len(a_obj["nodeValues"]) == 1:
+		pass
+		# make additional check for text length
+
 	for nodeValue in a_obj["nodeValues"]:
 		a_arr.append(str(nodeValue))
 
@@ -137,19 +141,35 @@ Realm Lord
 
 '''
 
+z = ['Fast', 'Flying', 'Impact(2)', 'Tough(3)', 'Claws', 'Bait', 'Joust']
 
-#obj = getGetCollectionFromNestedString(x)
-#obj = getGetCollectionFromNestedString(y)
-#obj = getGetCollectionFromNestedString(z)
-obj = getGetCollectionFromNestedString(recursion)
-#obj = getGetCollectionFromNestedString(recursion2)
-print(obj)
+zz = ['Fast', 'Flying', 'Impact(2)', 'Tough(3)', 'Claws', 'Drop Rock']
 
-tmpArr = []
-appendObjectFromNestedCollectionToArray(obj, tmpArr)
+ff = z
 
-print("\n\n\n")
+arr = ["asd","qwe","zxc", "rty","fgh","vbn"]
 
-printObjectArr(tmpArr)
+
+finalTriples = []
+
+index = len(ff)
+
+while len(ff) != 0:
+	st = ",".join(ff[:index])
+
+	if len(st) > 20:
+		index -= 1
+	else:
+		finalTriples.append(st)
+		ff = ff[index:]
+		index = len(ff)
+
+print(finalTriples)
+
+
+
+
+
+#printObjectArr(tmpArr)
 
 #getGetCollectionFromNestedString(recursion2)
