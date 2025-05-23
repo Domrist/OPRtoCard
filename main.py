@@ -3,7 +3,7 @@ from CardGenerator import *
 from APIJSONParser import *
 import requests
 from contants import *
-
+from UnitData import *
 
 pdf = FPDF(orientation='L', unit='mm', format='A4')
 pdf.add_page(orientation = "L", format = "a4")
@@ -16,8 +16,8 @@ ratmens = requests.get('https://army-forge.onepagerules.com/api/army-books/tOWt5
 
 #obj = json.loads(y.content)
 #obj = json.loads(x.content)
-#obj = json.loads(saurians.content)
-obj = json.loads(ratmens.content)
+obj = json.loads(saurians.content)
+#obj = json.loads(ratmens.content)
 units = obj["units"]
 
 
@@ -31,7 +31,10 @@ for unit in obj["units"]:
 
 	### Write first page
 	firstPageData = getFirstPageData(unit) # DONE
-	cardGenerator.writeFirstHeroCardData(firstPageData) # DONE
+	#cardGenerator.writeFirstHeroCardData(firstPageData) # DONE
+	unitData = UnitData()
+	cardGenerator.fillUnitFirstPageWithData(unitData, firstPageData)
+	cardGenerator.writeFirstPageByCardData(unitData) # DONE
 	### Write upgrades pages
 
 	unitUpgrades = getUnitUpgrades(unit, upgradePackage)
